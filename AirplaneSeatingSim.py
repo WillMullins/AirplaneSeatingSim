@@ -31,16 +31,40 @@ Model outline
          random variable will (on average) increase.
 """
 
-def seating(order):
-    rowCount = np.arrary(np.zeros(len(order)))
-    t = 0    
+order = 0 # order will be imported list from other groups program.  
+time = 0
+
+def main(order):
+    global time
+    positions = np.linspace(0,-1*len(order),num=len(order),endpoint=False).astype(int)
+    rows = np.arrary([row[0] for row in order])
+    seated = emptyOrder(order)
     while(len(order)!=0):
-        rowCount += 1
-        t += 1 #Work out units later
-        temp = rowCount - order
-        if (any(temp == 0)): #when rC- O = 0, the person has found their row.
-            #where temp = 0, then start having that person start the seating process.
-        #start seating process. 
-            #put carry on away (RT)
-            #enter seat "column" (RT)
-            #once they are seating it free's up the line behind them. 
+        positions += 1 #Move Everyone forward
+        time += 1 #Increment time, Work out units later
+        order = lineSeating(positions,rows, order,seated)
+
+def lineSeating(positions,rows, order,seated): 
+    distance = positions - rows
+    if (any(distance == 0)): #when rC - O = 0, the person has found their row.
+        for i in range(len(distance)):
+            if (distance[i]==0):
+                enterRow(order[i],seated)  #where distance = 0, then start having that person start the seating process.
+        
+        #remove everone who left the seating line
+        for i in range(len(distance)):
+            if (distance[i]==0):
+                order.remove(i) 
+                
+    #once they are seating it free's up the line behind them.
+    return order
+    
+def enterRow(passenger,seated):
+    global time
+    #add random time if there is a passenger in between their seat and the isle 
+    #put carry on away (RT)
+    #enter seat "column" (RT)
+    
+def emptyOrder(order):
+    emptyOrder = np.zeros((len(order),),dtype = 'i,i').tolist() #Credit: https://stackoverflow.com/questions/32561598/creating-tuples-with-np-zero
+    return emptyOrder
