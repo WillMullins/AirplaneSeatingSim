@@ -38,13 +38,13 @@ def main(order):
     global time
     positions = np.linspace(0,-1*len(order),num=len(order),endpoint=False).astype(int)
     rows = np.arrary([row[0] for row in order])
-    seated = emptyOrder(order)
+    seated = emptyPlane(order)
     while(len(order)!=0):
         positions += 1 #Move Everyone forward
         time += 1 #Increment time, Work out units later
-        order = lineSeating(positions,rows, order,seated)
+        order = seating(positions,rows, order,seated)
 
-def lineSeating(positions,rows, order,seated): 
+def seating(positions,rows, order,seated): 
     distance = positions - rows
     if (any(distance == 0)): #when rC - O = 0, the person has found their row.
         for i in range(len(distance)):
@@ -61,10 +61,23 @@ def lineSeating(positions,rows, order,seated):
     
 def enterRow(passenger,seated):
     global time
+    if passenger[1] <= 3:
+        if any(seated[passenger[0]][0:passenger[1]])==True:
+            #longer time
+        else:
+            #less time
+    else:
+        if any(seated[passenger[0]][passenger[1]:5])==True: # 5 is the index for the last plane column
+            #longer time
+        else:
+            #less time
+            
     #add random time if there is a passenger in between their seat and the isle 
     #put carry on away (RT)
     #enter seat "column" (RT)
     
-def emptyOrder(order):
-    emptyOrder = np.zeros((len(order),),dtype = 'i,i').tolist() #Credit: https://stackoverflow.com/questions/32561598/creating-tuples-with-np-zero
+def emptyPlane(order):
+    planeRows = 30
+    planeColumns = 6
+    emptyOrder = np.zeros((planeRows,),dtype = 'i,'*planeColumns).tolist() #Credit: https://stackoverflow.com/questions/32561598/creating-tuples-with-np-zero
     return emptyOrder
