@@ -7,6 +7,7 @@ Created on Tue Nov 28 13:12:58 2017
 Main file
 """
 import numpy as np
+import numpy.random as random
 """
 Model outline
 - Each person will walk to seats > put carry on away > get in their seats.
@@ -34,50 +35,68 @@ Model outline
 order = 0 # order will be imported list from other groups program.  
 time = 0
 
-def main(order):
+def AirplaneSeatingSim(order):
     global time
-    positions = np.linspace(0,-1*len(order),num=len(order),endpoint=False).astype(int)
-    rows = np.arrary([row[0] for row in order])
+    positions = np.linspace(0,-1*len(order),num=len(order),endpoint=False).astype(int) #position in line relative to 1 as the first row in the plane (they all start behind the first row)
+    rows = np.arrary([row[0] for row in order]) #each individual's assigned row
     seated = emptyPlane(order)
     while(len(order)!=0):
         positions += 1 #Move Everyone forward
-        time += 1 #Increment time, Work out units later
-        order = seating(positions,rows, order,seated)
+        time += 1 #Increment time, Work out units later (1 time unit is 2 seconds)
+        order,seated = seating(positions,rows, order,seated)
+    return time
 
 def seating(positions,rows, order,seated): 
     distance = positions - rows
     if (any(distance == 0)): #when rC - O = 0, the person has found their row.
         for i in range(len(distance)):
             if (distance[i]==0):
-                enterRow(order[i],seated)  #where distance = 0, then start having that person start the seating process.
+                seated = enterRow(order[i],seated)  #where distance = 0, then start having that person start the seating process.
         
-        #remove everone who left the seating line
+        #remove everone who left the seating line (everone whose distance=0 must have been seated first)
         for i in range(len(distance)):
             if (distance[i]==0):
                 order.remove(i) 
                 
     #once they are seating it free's up the line behind them.
-    return order
+    return order,seated
     
 def enterRow(passenger,seated):
     global time
-    if passenger[1] <= 3:
-        if any(seated[passenger[0]][0:passenger[1]])==True:
-            #longer time
+    row = passenger[0]-1
+    column = passenger[1]-1
+    placeCarryOn()
+    if column < 3:
+        if any(seated[row][:column])==True:
+            #add random time if there is a passenger in between their seat and the isle 
+            enterTime(np.count_nonzero(seated[row][:column]))
         else:
-            #less time
+            enterTime(0)
     else:
-        if any(seated[passenger[0]][passenger[1]:5])==True: # 5 is the index for the last plane column
-            #longer time
+        if any(seated[row][3:column])==True:
+            enterTime(np.count_nonzero(seated[row][3:column]))
         else:
-            #less time
+            enterTime(0)
             
-    #add random time if there is a passenger in between their seat and the isle 
-    #put carry on away (RT)
-    #enter seat "column" (RT)
+    #put people into their row    
+    seated[row][column] = seated[row][:column]+(1,)+seated[row][column+1:]        
+    return seated
     
 def emptyPlane(order):
-    planeRows = 30
-    planeColumns = 6
+    planeRows = max(order[:][0])
+    planeColumns = max(order[:][1])
     emptyOrder = np.zeros((planeRows,),dtype = 'i,'*planeColumns).tolist() #Credit: https://stackoverflow.com/questions/32561598/creating-tuples-with-np-zero
     return emptyOrder
+    
+def placeCarryOn():
+    global time
+    time += random.exponencial(15) #this assumes an average of 30s to put a carry on away
+    #add whatever time it takes to put a carry on away
+    
+def enterTime(wait):
+    global time
+    time += random.exponencial(5+wait*6) #assumes it takes 10s + 12s per person in your way 
+    #add some amount to time
+    
+totalTime = AirplaneSeatingSim(order)
+print("It took" + totalTime*2 + " seconds for everyone to be seated")
