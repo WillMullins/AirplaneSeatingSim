@@ -11,7 +11,7 @@ import numpy.random as random
 """
 Model outline
 - Each person will walk to seats > put carry on away > get in their seats.
-- Different list for each row. People are loading into their seats simultaniously.  
+- Everyone who is at their row loads into their seats simultaniously.  
 
  - When walking to seats the line will simultaneously advance 1 row foreward
       if anyone in the line is at the row of their seat they will begin the 
