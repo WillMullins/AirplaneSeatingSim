@@ -24,7 +24,7 @@ class Passenger:
             self.position += 1
     
     def updateMove(self,other):
-        if other.postition+1==self.position & other.canmove == False:
+        if (other.postition+1==self.position & other.canmove == False)| self.haltTime>0 :
             self.canMove = False
             self.haltTime = other.haltTime
         else:
@@ -70,7 +70,8 @@ def AirplaneSeatingSim(order):
     buildOrder(order)
     seated = emptyPlane(order)
     while (len(order) != 0):
-        #order.updateMove(order[1:])
+        for i in range(len(order)-1):
+            order[i].updateMove([i+1])
         order.moveForeward()
         order.update()
         order,seated = seating(order,seated)
