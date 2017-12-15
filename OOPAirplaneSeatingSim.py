@@ -6,11 +6,13 @@ Created on Wed Dec 13 16:06:23 2017
 """
 import numpy as np
 import numpy.random as random
+import math
+import PlaneLoad
 #import PlaneLoad as pl
 
 
-time = 0
-order = [(1,2),(3,4)]
+
+order = PlaneLoad.nzoneb2f(2)
 
 class Passenger:
     def __init__(self,position,row,column):
@@ -19,25 +21,27 @@ class Passenger:
         self.column = column
         self.canMove = True
         self.haltTime = 0
+        self.isSeated = False
         
     def moveForeward(self):
         if self.canMove == True:
             self.position += 1
     
     def updateCanMove(self,other):
-        if (other.position+1==self.position & other.canMove == False)| self.haltTime>0 :
+        if (other.position-1==self.position and other.canMove == False)or self.haltTime>0:
             self.canMove = False
             self.haltTime = other.haltTime
         else:
             self.canMove = True 
             
-    def enterRow(self,seated,wait):
+    def enterRow(self,wait):
         self.placeCarryOn()
-        self.halt(round(random.exponencial(5+wait*6)))
+        self.halt(math.ceil(random.exponential(5+wait*6)))
+        
         
         
     def placeCarryOn(self):
-        self.halt(round(random.exponencial(15)))
+        self.halt(math.ceil(random.exponential(15)))
         
     def halt(self,haltTime):
         self.haltTime += haltTime
@@ -65,37 +69,47 @@ class Passenger:
     def setCanMove(self,canMove):
         self.canMove = canMove
         
-def AirplaneSeatingSim(order):
-    global time     
-    seated = emptyPlane(order)
+    def getIsSeated(self):
+        return self.isSeated
+    def setIsSeated(self,isSeated):
+        self.isSeated = isSeated
+        
+def AirplaneSeatingSim(order):   
+    time = 0
+    seated = []
     order = buildOrder(order)
-    while (len(order) != 0):
-        for i in range(len(order)-1):
-            order[i].updateCanMove(order[i+1])
+    notAllSeated = checkAllSeated(order)
+    while (notAllSeated):
+        for i in range(1,len(order)):
+            order[i].updateCanMove(order[i-1])
         for i in range(len(order)):
             order[i].moveForeward()    
         time += 1
         for i in range(len(order)):
             order[i].updateHaltTime()
         order,seated = seating(order,seated)
+        notAllSeated = checkAllSeated(order)
     return time
     
 def seating(order,seated):
     distance=[]    
     for i in range(len(order)):
         distance.append(order[i].position-order[i].row)
-    if (np.any(distance == 0)): #when position - row = 0, the person has found their row.
-     #we need to have the "simultaneous" seating start from the front of the line and go backwards for halt time purposes.
-        for i in range(len(distance)-1,-1,-1): #Found this here https://stackoverflow.com/questions/869885/loop-backwards-using-indices-in-python
-            if (distance[i]==0):
+    if (not(np.all(distance))): #when position - row = 0, the person has found their row.
+        for i in range(len(distance)): 
+            if (distance[i]==0 and not(order[i].getIsSeated())):
                 extraWait = checkSeated(order[i],seated)
-                order[i].enterRow(seated,extraWait)  #where distance = 0, then start having that person start the seating process.
-                order[:i].setHaltTime(order[i].getHaltTime()) #make everyone behind them stop
+                order[i].enterRow(extraWait)  #where distance = 0, then start having that person start the seating process.
+                for j in range(i+1,len(order)-1,1):
+                    order[j].setHaltTime(order[i].getHaltTime()) #make everyone behind them stop
+                order[i].setIsSeated(True) 
+                seated.append(order[i])
 
-    #remove everone who left the seating line (everone whose distance=0 must have alread been seated)
-    for i in range(len(distance)):
-        if (distance[i]==0):
-            order.remove(i)    
+#    #remove everone who left the seating line (everone whose distance=0 must have alread been seated)
+#    for i in range(len(distance)):
+#        if (distance[i]==0):
+#            seated[i] = order[i]
+#            order[i].setIsSeated(True) 
 
     return order,seated
     
@@ -104,31 +118,60 @@ def seating(order,seated):
 def checkSeated(passenger, seated):
     row = passenger.getRow()
     column = passenger.getColumn()
+    wait = 0
     if column < 3:
-        if any(seated[row][:column])==True:
-
-            return np.count_nonzero(seated[row][:column])
-        else:
-            return 0
+        for i in range(len(seated)):
+            if seated[i].getRow() ==row:
+                if seated[i].getColumn()>column:
+                    wait += 1
     else:
-        if any(seated[row][3:column])==True:
-            return np.count_nonzero(seated[row][3:column])
-        else:
-            return 0
+        for i in range(len(seated)):
+            if seated[i].getRow() ==row:
+                if seated[i].getColumn()<column:
+                    wait += 1
+    return wait
     
 def buildOrder(order):
-    tempOrder = emptyPlane(order)
+    tempOrder = []
     for i in range(len(order)):
-        tempOrder[i] = Passenger(-1*i,order[i][0],order[i][1])
-    order = tempOrder
+        tempOrder.append(Passenger((-1*i)-1,order[i][0],order[i][1]))
+    order = tempOrder[:len(order)]
     return order
     
-def emptyPlane(order):
-    planeRows = max(order[:][0])
-    planeColumns = max(order[:][1])
-    emptyOrder = np.zeros((planeRows,),dtype = 'i,'*planeColumns).tolist() #Credit: https://stackoverflow.com/questions/32561598/creating-tuples-with-np-zero
-    return emptyOrder
+#def emptyPlane(order):
+#    planeRows = max([i[0] for i in order])
+#    planeColumns = max([i[1] for i in order])
+#    emptyPlane = np.zeros((planeRows,),dtype = 'i,'*planeColumns).tolist() #Credit: https://stackoverflow.com/questions/32561598/creating-tuples-with-np-zero 
+#    return emptyPlane
+#
+#def emptyOrder(order):
+#    emptyOrder = buildOrder(emptyPlane(order))
+#    return emptyOrder
+    
+def longestHalt(order):
+    longestHalt = 0
+    for i in range(len(order)):
+        if order[i].getHaltTime() > longestHalt:
+            longestHalt = order[i].getHaltTime()
+    return longestHalt
 
-totalTime = AirplaneSeatingSim(order)
+def checkAllSeated(order):
+    for i in range(len(order)):
+        if not(order[i].getIsSeated()):
+            return True
+    return False
 
-print(totalTime)
+randtotal =0
+for i in range(100):
+    randtotal += AirplaneSeatingSim(PlaneLoad.randomorder())
+randtotal = randtotal/100
+
+print("random order ",randtotal*2 ,"seconds")
+
+b2ftotal =0
+for i in range(100):
+    b2ftotal += AirplaneSeatingSim(PlaneLoad.nzoneb2f(4))
+b2ftotal = b2ftotal/100
+
+print("4 zones ",b2ftotal*2,"seconds")
+

@@ -25,7 +25,7 @@ def randomorder():
             aisle = 0
         aisle +=1
     random.shuffle(arriveorder)
-    print("Arrive order =",arriveorder)
+    #print("Arrive order =",arriveorder)
     return arriveorder
     
 def nzoneb2f(n):
@@ -43,12 +43,12 @@ def nzoneb2f(n):
     dy = 0
     latezones = []
     totallate = len(latepeople)
-    print("Number late =",totallate)
+    #print("Number late =",totallate)
     for i in range(zones-1):
         dy = abs(math.exp(-alpha*(i))-math.exp(-alpha*((1+i)*(1/zones))))
         latezones.append(int(round(dy*totallate)))
     latezones.append(totallate-sum(latezones))
-    print("Number of people arriving late during each zone =",latezones)
+   # print("Number of people arriving late during each zone =",latezones)
     
     #LOAD 'EM UP
     nowarrived = []
@@ -71,7 +71,7 @@ def nzoneb2f(n):
                 print("Well, shit")
     
     
-    print("Load order =",loadorder)
+    #print("Load order =",loadorder)
     return loadorder
     
 
