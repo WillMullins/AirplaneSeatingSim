@@ -5,12 +5,13 @@ Created on Thu Nov 30 14:07:13 2017
 @author: eastlarj
 """
 import random
+import math
 arriveorder = []
 loadorder = []
 lastgroup = []
 aisle = 1
 row = 1
-ontimenumber = 150
+ontimenumber = random.randint(100,170)
 
 #create random arrival order
 while (row <= 30):
@@ -24,6 +25,7 @@ random.shuffle(arriveorder)
 #print(arriveorder)
 
 ontime = arriveorder[0:ontimenumber]
+latepeople = arriveorder[ontimenumber:]
 
 def randomorder(arriveorder, loadorder):
     loadorder = arriveorder
@@ -68,37 +70,42 @@ def twozonef2b(arriveorder, loadorder, lastgroup, ontimenumber):
     
     return loadorder
     
-def fivezoneb2f(arriveorder, loadorder, lastgroup, ontimenumber):
-    zones = 5
-    groupsize = 30/zones
+def nzoneb2f(n, arriveorder, loadorder, lastgroup, ontime, ontimenumber, latepeople):
+    zones = n
+    rowchunk = 30/zones
     a = 1
-    for zone in range(zones-1):
-        for i in ontime:
-            if (i[0] >=(31-groupsize*a)):
-                loadorder.append(i)
-            a +=1
     
-        
-        """for i in ontime:
-            if (i[0] >=19):
-                loadorder.append(i)
-        for i in ontime:
-            if (i[0] >=13):
-                loadorder.append(i)
-        for i in ontime:
-            if (i[0] >=7):
-                loadorder.append(i) """
-    for i in ontime:
-        if (i[0] <groupsize+1):
-            lastgroup.append(i)
+    #DISTRIBUTION OF LATE PEOPLE BY ZONE
+    alpha = random.random()*3 + 3
+    dy = 0
+    latezones = []
+    totallate = len(latepeople)
+    print(totallate)
+    for i in range(zones-1):
+        dy = abs(math.exp(-alpha*(i))-math.exp(-alpha*((1+i)*(1/zones))))
+        latezones.append(int(round(dy*totallate)))
+    latezones.append(totallate-sum(latezones))
+    print(latezones)
     
-    lastgroup.extend(arriveorder[ontimenumber:])
-    random.shuffle(lastgroup)
-    
-    loadorder.extend(lastgroup)
-            
+    #LOAD 'EM UP
+    nowarrived = []
+    print(latepeople)
+    for zone in range(zones):
+        for i in ontime:
+            if (i[0] >=(31-rowchunk*a) and i[0] <= 30-rowchunk*(a-1)):
+                loadorder.append(i)
+        nowarrived = latepeople[:latezones[zone]]
+        del latepeople[:latezones[zone]]
+        print(latepeople)
+        for i in nowarrived:
+            if i[0]>=(31-rowchunk*a):
+                loadorder.append(i)
+            else:
+                ontime.append(i)   
+        a += 1
         
     print(loadorder)
+    print(len(loadorder))
     
     
     
@@ -106,4 +113,4 @@ def fivezoneb2f(arriveorder, loadorder, lastgroup, ontimenumber):
 #twozoneb2f(arriveorder, loadorder, lastgroup, ontimenumber)
 #twozonef2b(arriveorder, loadorder, lastgroup, ontimenumber)
 
-fivezoneb2f(arriveorder, loadorder, lastgroup, ontimenumber)
+nzoneb2f(3, arriveorder, loadorder, lastgroup, ontime, ontimenumber, latepeople)
