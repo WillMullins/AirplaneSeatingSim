@@ -105,11 +105,6 @@ def seating(order,seated):
                 order[i].setIsSeated(True) 
                 seated.append(order[i])
 
-#    #remove everone who left the seating line (everone whose distance=0 must have alread been seated)
-#    for i in range(len(distance)):
-#        if (distance[i]==0):
-#            seated[i] = order[i]
-#            order[i].setIsSeated(True) 
 
     return order,seated
     
@@ -138,16 +133,6 @@ def buildOrder(order):
     order = tempOrder[:len(order)]
     return order
     
-#def emptyPlane(order):
-#    planeRows = max([i[0] for i in order])
-#    planeColumns = max([i[1] for i in order])
-#    emptyPlane = np.zeros((planeRows,),dtype = 'i,'*planeColumns).tolist() #Credit: https://stackoverflow.com/questions/32561598/creating-tuples-with-np-zero 
-#    return emptyPlane
-#
-#def emptyOrder(order):
-#    emptyOrder = buildOrder(emptyPlane(order))
-#    return emptyOrder
-    
 def longestHalt(order):
     longestHalt = 0
     for i in range(len(order)):
@@ -168,10 +153,25 @@ randtotal = randtotal/100
 
 print("random order ",randtotal*2 ,"seconds")
 
+b2f2total =0
+for i in range(100):
+    b2f2total += AirplaneSeatingSim(PlaneLoad.nzoneb2f(2))
+b2f2total = b2f2total/100
+
+print("2 zones ",b2f2total*2,"seconds")
+
+
 b2ftotal =0
 for i in range(100):
     b2ftotal += AirplaneSeatingSim(PlaneLoad.nzoneb2f(4))
 b2ftotal = b2ftotal/100
 
 print("4 zones ",b2ftotal*2,"seconds")
+
+b2fmaxtotal =0
+for i in range(100):
+    b2fmaxtotal += AirplaneSeatingSim(PlaneLoad.nzoneb2f(29))
+b2fmaxtotal = b2fmaxtotal/100
+
+print("Max zones ",b2fmaxtotal*2,"seconds")
 
