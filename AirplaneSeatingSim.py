@@ -8,7 +8,7 @@ Main file
 """
 import numpy as np
 import numpy.random as random
-import PlaneLoad as pl
+#import PlaneLoad as pl
 """
 Model outline
 - Each person will walk to seats > put carry on away > get in their seats.
@@ -33,7 +33,7 @@ Model outline
          random variable will (on average) increase.
 """
 
-order = pl.randomorder()
+order = 0
 print(order) # order will be imported list from other groups program.  
 time = 0
 
@@ -50,7 +50,7 @@ def AirplaneSeatingSim(order):
 
 def seating(positions,rows, order,seated): 
     distance = positions - rows
-    if (any(distance == 0)): #when rC - O = 0, the person has found their row.
+    if (np.any(distance == 0)): #when rC - O = 0, the person has found their row.
         for i in range(len(distance)):
             if (distance[i]==0):
                 seated = enterRow(order[i],seated)  #where distance = 0, then start having that person start the seating process.

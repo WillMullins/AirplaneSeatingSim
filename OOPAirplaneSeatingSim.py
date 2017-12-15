@@ -6,11 +6,11 @@ Created on Wed Dec 13 16:06:23 2017
 """
 import numpy as np
 import numpy.random as random
-import PlaneLoad.py
+#import PlaneLoad as pl
 
 
 time = 0
-order = 0
+order = [(1,2),(3,4)]
 
 class Passenger:
     def __init__(self,position,row,column):
@@ -25,7 +25,7 @@ class Passenger:
             self.position += 1
     
     def updateCanMove(self,other):
-        if (other.postition+1==self.position & other.canmove == False)| self.haltTime>0 :
+        if (other.position+1==self.position & other.canMove == False)| self.haltTime>0 :
             self.canMove = False
             self.haltTime = other.haltTime
         else:
@@ -66,20 +66,25 @@ class Passenger:
         self.canMove = canMove
         
 def AirplaneSeatingSim(order):
-    global time    
-    buildOrder(order)
+    global time     
     seated = emptyPlane(order)
+    order = buildOrder(order)
     while (len(order) != 0):
         for i in range(len(order)-1):
             order[i].updateCanMove(order[i+1])
-        order.moveForeward()    
+        for i in range(len(order)):
+            order[i].moveForeward()    
         time += 1
-        order.updateHaltTime()
+        for i in range(len(order)):
+            order[i].updateHaltTime()
         order,seated = seating(order,seated)
+    return time
     
 def seating(order,seated):
-    distance = order.position-order.row
-    if (any(distance == 0)): #when position - row = 0, the person has found their row.
+    distance=[]    
+    for i in range(len(order)):
+        distance.append(order[i].position-order[i].row)
+    if (np.any(distance == 0)): #when position - row = 0, the person has found their row.
      #we need to have the "simultaneous" seating start from the front of the line and go backwards for halt time purposes.
         for i in range(len(distance)-1,-1,-1): #Found this here https://stackoverflow.com/questions/869885/loop-backwards-using-indices-in-python
             if (distance[i]==0):
@@ -114,11 +119,16 @@ def checkSeated(passenger, seated):
 def buildOrder(order):
     tempOrder = emptyPlane(order)
     for i in range(len(order)):
-        tempOrder[i] = Passenger(-1*i,order[i][1],order[i][2])
+        tempOrder[i] = Passenger(-1*i,order[i][0],order[i][1])
     order = tempOrder
+    return order
     
 def emptyPlane(order):
     planeRows = max(order[:][0])
     planeColumns = max(order[:][1])
     emptyOrder = np.zeros((planeRows,),dtype = 'i,'*planeColumns).tolist() #Credit: https://stackoverflow.com/questions/32561598/creating-tuples-with-np-zero
     return emptyOrder
+
+totalTime = AirplaneSeatingSim(order)
+
+print(totalTime)
