@@ -6,6 +6,7 @@ Created on Wed Dec 13 16:06:23 2017
 """
 import numpy as np
 import numpy.random as random
+import PlaneLoad.py
 
 
 time = 0
@@ -23,7 +24,7 @@ class Passenger:
         if self.canMove == True:
             self.position += 1
     
-    def updateMove(self,other):
+    def updateCanMove(self,other):
         if (other.postition+1==self.position & other.canmove == False)| self.haltTime>0 :
             self.canMove = False
             self.haltTime = other.haltTime
@@ -32,19 +33,17 @@ class Passenger:
             
     def enterRow(self,seated,wait):
         self.placeCarryOn()
-        self.haltTime += round(random.exponencial(15))
+        self.halt(round(random.exponencial(5+wait*6)))
         
         
     def placeCarryOn(self):
         self.halt(round(random.exponencial(15)))
         
     def halt(self,haltTime):
-        self.haltTime = haltTime
+        self.haltTime += haltTime
         self.canMove = False
         
-    def update(self):
-        global time
-        time += 1
+    def updateHaltTime(self):
         if self.haltTime == 0:
             self.canMove = True
         else:
@@ -67,24 +66,26 @@ class Passenger:
         self.canMove = canMove
         
 def AirplaneSeatingSim(order):
+    global time    
     buildOrder(order)
     seated = emptyPlane(order)
     while (len(order) != 0):
         for i in range(len(order)-1):
-            order[i].updateMove([i+1])
-        order.moveForeward()
-        order.update()
+            order[i].updateCanMove(order[i+1])
+        order.moveForeward()    
+        time += 1
+        order.updateHaltTime()
         order,seated = seating(order,seated)
     
 def seating(order,seated):
-    distance = order.position-order.rows
-    if (any(distance == 0)): #when rC - O = 0, the person has found their row.
-      #we need to have the "simultaneous" seating start from the from of the line for halt time purposes.
-      for i in range(len(distance)-1,-1,-1): #Found this here https://stackoverflow.com/questions/869885/loop-backwards-using-indices-in-python
-          if (distance[i]==0):
-              extraWait = checkSeated(order[i],seated)
-              order[i].enterRow(seated,extraWait)  #where distance = 0, then start having that person start the seating process.
-              order[:i].setHaltTime(order[i].getHaltTime()) #make everyone behind them stop
+    distance = order.position-order.row
+    if (any(distance == 0)): #when position - row = 0, the person has found their row.
+     #we need to have the "simultaneous" seating start from the front of the line and go backwards for halt time purposes.
+        for i in range(len(distance)-1,-1,-1): #Found this here https://stackoverflow.com/questions/869885/loop-backwards-using-indices-in-python
+            if (distance[i]==0):
+                extraWait = checkSeated(order[i],seated)
+                order[i].enterRow(seated,extraWait)  #where distance = 0, then start having that person start the seating process.
+                order[:i].setHaltTime(order[i].getHaltTime()) #make everyone behind them stop
 
     #remove everone who left the seating line (everone whose distance=0 must have alread been seated)
     for i in range(len(distance)):

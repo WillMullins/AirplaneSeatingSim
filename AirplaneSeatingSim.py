@@ -8,6 +8,7 @@ Main file
 """
 import numpy as np
 import numpy.random as random
+import PlaneLoad as pl
 """
 Model outline
 - Each person will walk to seats > put carry on away > get in their seats.
@@ -32,7 +33,8 @@ Model outline
          random variable will (on average) increase.
 """
 
-order = 0 # order will be imported list from other groups program.  
+order = pl.randomorder()
+print(order) # order will be imported list from other groups program.  
 time = 0
 
 def AirplaneSeatingSim(order):
@@ -98,5 +100,5 @@ def enterTime(wait):
     time += random.exponencial(5+wait*6) #assumes it takes 10s + 12s per person in your way 
     #add some amount to time
     
-totalTime = AirplaneSeatingSim(order)
-print("It took" + totalTime*2 + " seconds for everyone to be seated")
+#totalTime = AirplaneSeatingSim(order)
+#print("It took" + totalTime*2 + " seconds for everyone to be seated")
